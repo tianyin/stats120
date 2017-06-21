@@ -24,7 +24,8 @@ def parsescore(fp):
   for l in  __loadfile(fp):
     if l.startswith('Autograde Score:'):
       return l.replace('Autograde Score: ', '').replace(' / 100', '')
-  return None 
+  print 'ERROR', fp
+  return '0.0'
   
 def getscore(proj):
   sdict = {}
@@ -109,6 +110,8 @@ def runbirds(projx, intv_len=2):
     overall |= bs  
 
 if __name__ == "__main__":
+  print '-----------------------'
+  runbirds('proj1')
   print '-----------------------'
   runbirds('proj2')
   print '-----------------------'
