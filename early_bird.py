@@ -92,9 +92,9 @@ def runbirds(projx, intv_len=2):
 
   al = get_birds(start_date, dspan)
   print '-----------------------'
-  print 'intv #repo mean median'
+  print 'start_date #repo mean median'
   print '-----------------------'
-  print 'all', len(al), __mean(__select(al, sdict)), __median(__select(al, sdict))
+  print 'all.days', len(al), __mean(__select(al, sdict)), __median(__select(al, sdict))
   print '-----------------------'
   intv_cnt = int(math.ceil(1.0 * dspan / intv_len))
 
@@ -105,7 +105,7 @@ def runbirds(projx, intv_len=2):
     if len(bs) == 0:
       print 0, 0
     else:
-      print str(intv_len*(i-1))+'-'+str(intv_len*i), len(bs), __mean(__select(bs, sdict)), __median(__select(bs, sdict))
+      print 'day.'+str(intv_len*(i-1))+'-'+str(intv_len*i), len(bs), __mean(__select(bs, sdict)), __median(__select(bs, sdict))
     overall |= bs  
 
 if __name__ == "__main__":
