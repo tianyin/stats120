@@ -3,6 +3,7 @@ from datetime import datetime
 from datetime import timedelta, tzinfo
 import gcommits
 import os
+import math
 
 def __loadfile(fp): 
   with open(fp) as f:
@@ -70,34 +71,39 @@ def get_birds(start_date, intv):
   #print birds_score
   return birds
 
-start_date = datetime.strptime(config.get('time', 'proj1_due'), '%a %b %d %H:%M:%S %Y')
-start_date += timedelta(days=1)
-start_date += timedelta(days=1)
-
-
-def select(repos, sdict):
+def __select(repos, sdict):
   sl = []
   for repo in sdict:
     if repo in repos:
       sl.append(sdict[repo])
   return sl 
 
+
+start_date = datetime.strptime(config.get('time', 'proj1_due'), '%a %b %d %H:%M:%S %Y')
+start_date += timedelta(days=1)
+start_date += timedelta(days=1)
+due_date = datetime.strptime(config.get('time', 'proj2_due'), '%a %b %d %H:%M:%S %Y')
+print 'time diff: ', (due_date - start_date).days
+
 sdict = getscore()
-print len(sdict), mean(sdict.values())
+#print len(sdict), mean(sdict.values())
 
 al = get_birds(start_date, 30)
-print len(al), mean(select(al, sdict)), median(select(al, sdict))
+print len(al), mean(__select(al, sdict)), median(__select(al, sdict))
+
+intv_len = 2
+intv_cnt = int(math.ceil(1.0 * (due_date - start_date).days / intv_len))
 
 checksum = 0
 overall = set()
-for i in range(15):
-  bs = get_birds(start_date, 2*i)
+for i in range(intv_cnt + 1):
+  bs = get_birds(start_date, intv_len*i)
   bs -= overall
   checksum += len(bs)
   if len(bs) == 0:
     print 0, 0
   else:
-    print len(bs), mean(select(bs, sdict)), median(select(bs, sdict))
+    print len(bs), mean(__select(bs, sdict)), median(__select(bs, sdict))
   overall |= bs
 
 print len(overall), '<>', checksum
