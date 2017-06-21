@@ -4,28 +4,6 @@ import os
 from datetime import datetime
 from datetime import timedelta, tzinfo
 
-#PATH = '/home/cse120/snapshot.proj2/nachos_fa16_davidmrdavid_ethandbrand'
-#out = subprocess.check_output(['git', '-C', PATH, 'log'])
-#log = out.split('\n')
-
-class FixedOffset(tzinfo):
-  """Fixed offset in minutes: `time = utc_time + utc_offset`."""
-  def __init__(self, offset):
-    self.__offset = timedelta(minutes=offset)
-    hours, minutes = divmod(offset, 60)
-    #NOTE: the last part is to remind about deprecated POSIX GMT+h timezones
-    #  that have the opposite sign in the name;
-    #  the corresponding numeric value is not used e.g., no minutes
-    self.__name = '<%+03d%02d>%+d' % (hours, minutes, -hours)
-  def utcoffset(self, dt=None):
-    return self.__offset
-  def tzname(self, dt=None):
-    return self.__name
-  def dst(self, dt=None):
-    return timedelta(0)
-  def __repr__(self):
-    return 'FixedOffset(%d)' % (self.utcoffset().total_seconds() / 60)
-
 def getcommits():
   cdict = {}
   rdir = config.get('general', 'repos_root') 
@@ -36,7 +14,7 @@ def getcommits():
     out = subprocess.check_output(['git', '-C', fp, 'log'])
     commits = parselog(out.split('\n'))
     filterTA(commits)
-    cdict[f.replace('nachos_fa16_', '')] = commits
+    cdict[f] = commits
   return cdict
 
 def parselog(log):
