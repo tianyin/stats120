@@ -8,7 +8,7 @@ def getcommits():
   cdict = {}
   rdir = config.get('general', 'repos_root') 
   for f in os.listdir(rdir):
-    if f.startswith('nachos_fa16') == False:
+    if f.startswith(config.get('general', 'repo_prefix')) == False:
       continue
     fp = os.path.join(rdir, f)
     out = subprocess.check_output(['git', '-C', fp, 'log'])
@@ -29,13 +29,13 @@ def parselog(log):
       continue
     if line.startswith('commit '):
       if revno != None:
-        cha = {}
-        cha['version'] = revno
-        cha['changes'] = message
-        cha['merge'] = merge
-        cha['date'] = parsetstr(date)
-        cha['author'] = author
-        commits.append(cha)
+        com = {}
+        com['version'] = revno
+        com['message'] = message
+        com['merge'] = merge
+        com['date'] = parsetstr(date)
+        com['author'] = author
+        commits.append(com)
       revno = line.replace('commit', '').strip()
       message = ''
       date = None
@@ -53,24 +53,24 @@ def parselog(log):
       print 'ERROR:', line
 
   # the last commit
-  cha = {}
-  cha['version'] = revno
-  cha['changes'] = message
-  cha['date'] = parsetstr(date)
-  cha['merge'] = merge
-  cha['author'] = author
-  commits.append(cha)
+  com = {}
+  com['version'] = revno
+  com['message'] = message
+  com['date'] = parsetstr(date)
+  com['merge'] = merge
+  com['author'] = author
+  commits.append(com)
 
   return commits
 
 
 def filterTA(commits):
   res = []
-  tas = ['Tianyin Xu', 'Aravind Kumar', 'danielknapp', 'dknapp@ucsd.edu', 'akumark@eng.ucsd.edu']
+  tas = config.get('general', 'ta_list').split(',')
   for commit in commits:
     ista = False
     for ta in tas:
-      #if 'Autograder' in commit['changes']:
+      #if 'Autograder' in commit['comnges']:
       #  print commit
       if ta in commit['author']:
         ista = True
@@ -83,8 +83,3 @@ def parsetstr(date_str):
   naive_date_str, _, offset_str = date_str.rpartition(' ')
   naive_dt = datetime.strptime(naive_date_str, '%a %b %d %H:%M:%S %Y')
   return naive_dt
-  #offset = int(offset_str[-4:-2])*60 + int(offset_str[-2:])
-  #if offset_str[0] == "-":
-  #  offset = -offset
-  #dt = naive_dt.replace(tzinfo=FixedOffset(offset))
-  #return dt 

@@ -1,10 +1,10 @@
 from config import config
 from datetime import datetime
 from datetime import timedelta, tzinfo
-import gcommits
+import commit_parser
 
 dcnt = {}
-cdict = gcommits.getcommits()
+cdict = commit_parser.getcommits()
 for repo, commits in cdict.iteritems():
   for c in commits:
     datestr = c['date'].strftime("%Y-%m-%d")
@@ -16,8 +16,8 @@ for repo, commits in cdict.iteritems():
   #print commits[-1]
   #find_closest(commits, None)
 
-init_dt  = datetime.strptime(config.get('time', 'init_repo'), '%a %b %d %H:%M:%S %Y')
-final_dt = datetime.strptime(config.get('time', 'proj3_due'), '%a %b %d %H:%M:%S %Y')
+init_dt  = datetime.strptime(config.get('general', 'init_repo'), '%a %b %d %H:%M:%S %Y')
+final_dt = datetime.strptime(config.get('general', 'proj3_due'), '%a %b %d %H:%M:%S %Y')
 #print type(final_dt - init_dt)
 qdays = (final_dt - init_dt).days
 
