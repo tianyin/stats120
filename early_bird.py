@@ -1,7 +1,7 @@
 from config import config
 from datetime import datetime
 from datetime import timedelta, tzinfo
-import gcommits
+import commit_parser
 import os
 import math
 
@@ -9,31 +9,10 @@ def __loadfile(fp):
   with open(fp) as f:
     return f.read().splitlines()
 
-def parsescore(fp):
-  for l in  __loadfile(fp):
-    if l.startswith('Autograde Score:'):
-      return l.replace('Autograde Score: ', '').replace(' / 100', '')
-  return None 
-  
-def getscore():
-  sdict = {}
-  rdir = config.get('general', 'repos_root') 
-  for f in os.listdir(rdir):
-    if f.startswith('nachos_fa16') == False:
-      continue
-    repop = os.path.join(rdir, f)
-    scorep = os.path.join(repop, 'proj2/proj2.res.summary')
-    if os.path.exists(scorep) == False:
-      score = 0.0
-    else:
-      score = float(parsescore(scorep))
-    sdict[f] = score
-  return sdict
-
-def mean(nums):
+def __mean(nums):
   return sum(nums) / len(nums)
 
-def median(nums):
+def __median(nums):
   snums = sorted(nums)
   index = (len(nums) - 1) / 2
   if len(nums)%2:
@@ -41,13 +20,34 @@ def median(nums):
   else:
     return (snums[index] + snums[index + 1])/2.0
 
-#scorell = getscore()
-#print mean(scorell.values())
+def parsescore(fp):
+  for l in  __loadfile(fp):
+    if l.startswith('Autograde Score:'):
+      return l.replace('Autograde Score: ', '').replace(' / 100', '')
+  return None 
+  
+def getscore(proj):
+  sdict = {}
+  rdir = config.get('general', 'repos_root') 
+  for f in os.listdir(rdir):
+    if f.startswith(config.get('general', 'repo_prefix')) == False:
+      continue
+    repop = os.path.join(rdir, f)
+    scorep = os.path.join(repop, config.get(proj, 'proj_score'))
+    if os.path.exists(scorep):
+      score = float(parsescore(scorep))
+    else:
+      score = 0.0
+    sdict[f] = score
+  return sdict
 
-def __has_commits(commits, tset):
+#scorell = getscore()
+#print __mean(scorell.values())
+
+def __has_commits(commits, dt_set):
   for c in commits:
     datestr = c['date'].strftime("%Y-%m-%d")
-    if datestr in tset:
+    if datestr in dt_set:
       #print c
       return True
   return False 
@@ -65,7 +65,7 @@ def get_birds(start_date, intv):
   #print tset
 
   birds = set()
-  for repo, commits in gcommits.getcommits().iteritems():
+  for repo, commits in commit_parser.getcommits().iteritems():
     if __has_commits(commits, tset) == True:
       birds.add(repo)
   #print birds_score
@@ -79,34 +79,40 @@ def __select(repos, sdict):
   return sl 
 
 
-start_date = datetime.strptime(config.get('time', 'proj1_due'), '%a %b %d %H:%M:%S %Y')
-start_date += timedelta(days=1)
-start_date += timedelta(days=1)
-due_date = datetime.strptime(config.get('time', 'proj2_due'), '%a %b %d %H:%M:%S %Y')
-print 'time diff: ', (due_date - start_date).days
+def runbirds(projx, intv_len=2): 
+  start_date = datetime.strptime(config.get(projx, 'proj_start'), '%a %b %d %H:%M:%S %Y')
+  start_date += timedelta(days=1)
+  start_date += timedelta(days=1)
+  due_date = datetime.strptime(config.get(projx, 'proj_due'), '%a %b %d %H:%M:%S %Y')
+  dspan = (due_date - start_date).days
+  print projx, ' takes ', dspan, 'days'
 
-sdict = getscore()
-#print len(sdict), mean(sdict.values())
+  sdict = getscore(projx)
+  #print len(sdict), __mean(sdict.values())
 
-al = get_birds(start_date, 30)
-print len(al), mean(__select(al, sdict)), median(__select(al, sdict))
+  al = get_birds(start_date, dspan)
+  print '-----------------------'
+  print 'intv #repo mean median'
+  print '-----------------------'
+  print 'all', len(al), __mean(__select(al, sdict)), __median(__select(al, sdict))
+  print '-----------------------'
+  intv_cnt = int(math.ceil(1.0 * dspan / intv_len))
 
-intv_len = 2
-intv_cnt = int(math.ceil(1.0 * (due_date - start_date).days / intv_len))
+  overall = set()
+  for i in range(intv_cnt + 1):
+    bs = get_birds(start_date, intv_len*i)
+    bs -= overall
+    if len(bs) == 0:
+      print 0, 0
+    else:
+      print str(intv_len*(i-1))+'-'+str(intv_len*i), len(bs), __mean(__select(bs, sdict)), __median(__select(bs, sdict))
+    overall |= bs  
 
-checksum = 0
-overall = set()
-for i in range(intv_cnt + 1):
-  bs = get_birds(start_date, intv_len*i)
-  bs -= overall
-  checksum += len(bs)
-  if len(bs) == 0:
-    print 0, 0
-  else:
-    print len(bs), mean(__select(bs, sdict)), median(__select(bs, sdict))
-  overall |= bs
-
-print len(overall), '<>', checksum
+if __name__ == "__main__":
+  print '-----------------------'
+  runbirds('proj2')
+  print '-----------------------'
+  runbirds('proj3')
 #print len(get_birds(start_date, 10))
 #print len(get_birds(start_date, 15))
 #print len(get_birds(start_date, 25))
