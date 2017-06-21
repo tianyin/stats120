@@ -13,8 +13,7 @@ def getcommits():
     fp = os.path.join(rdir, f)
     out = subprocess.check_output(['git', '-C', fp, 'log'])
     commits = parselog(out.split('\n'))
-    filterTA(commits)
-    cdict[f] = commits
+    cdict[f] = filterTA(commits)
   return cdict
 
 def parselog(log):
@@ -66,13 +65,19 @@ def parselog(log):
 
 
 def filterTA(commits):
-  tas = ['Tianyin Xu', 'Aravind Kumar', 'danielknapp', 'dknapp@ucsd.edu']
+  res = []
+  tas = ['Tianyin Xu', 'Aravind Kumar', 'danielknapp', 'dknapp@ucsd.edu', 'akumark@eng.ucsd.edu']
   for commit in commits:
+    ista = False
     for ta in tas:
       #if 'Autograder' in commit['changes']:
       #  print commit
       if ta in commit['author']:
-        commits.remove(commit)
+        ista = True
+        break
+    if ista == False:
+      res.append(commit)
+  return res
 
 def parsetstr(date_str):
   naive_date_str, _, offset_str = date_str.rpartition(' ')
@@ -83,26 +88,3 @@ def parsetstr(date_str):
   #  offset = -offset
   #dt = naive_dt.replace(tzinfo=FixedOffset(offset))
   #return dt 
-
-def find_closest(commits, start_date):
-  lastcommit = None
-  for commit in commits:
-    if commit['date'] <= datetime.strptime('Sat Nov 19 23:59:59 2016', '%a %b %d %H:%M:%S %Y'):
-      print lastcommit
-    lastcommit = commit
-
-"""
-DIR = '/home/cse120/snapshot.proj2/' 
-for f in os.listdir(DIR):
-  fp = os.path.join(DIR, f)
-  print fp
-  out = subprocess.check_output(['git', '-C', fp, 'log'])
-  commits = parselog(out.split('\n'))
-  #print len(commits)
-  filterTA(commits)
-  #print len(commits)
-  print '--------------------'
-  #print len(commits)
-  #print commits[-1]
-  #find_closest(commits, None)
-"""

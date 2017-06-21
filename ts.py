@@ -23,10 +23,10 @@ qdays = (final_dt - init_dt).days
 
 date = init_dt
 for i in range(qdays + 1): 
-    dtstr = date.strftime("%Y-%m-%d")
-    if dtstr in dcnt:
-      print dtstr + '\t' + str(dcnt[dtstr])
-    else:
-      print dtstr + '\t' + str(0)
-    date += timedelta(days=1)
+  dtstr = date.strftime("%Y-%m-%d")
+  if dtstr in dcnt:
+    print dtstr + '\t' + str(dcnt[dtstr])
+  else:
+    print dtstr + '\t' + str(0)
+  date += timedelta(days=1)
 
