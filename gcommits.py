@@ -26,6 +26,18 @@ class FixedOffset(tzinfo):
   def __repr__(self):
     return 'FixedOffset(%d)' % (self.utcoffset().total_seconds() / 60)
 
+def getcommits():
+  cdict = {}
+  rdir = config.get('general', 'repos_root') 
+  for f in os.listdir(rdir):
+    if f.startswith('nachos_fa16') == False:
+      continue
+    fp = os.path.join(rdir, f)
+    out = subprocess.check_output(['git', '-C', fp, 'log'])
+    commits = parselog(out.split('\n'))
+    filterTA(commits)
+    cdict[f.replace('nachos_fa16_', '')] = commits
+  return cdict
 
 def parselog(log):
   commits = []
